@@ -5,7 +5,6 @@ GRAFICAS POR COMPUTADORA
 ROBERTO RIOS, 20979
 """
 
-
 import struct
 
 def char(c: str):
@@ -20,19 +19,25 @@ def dword(d: int):
     # 4 byte
     return struct.pack('=l', d)
 
-def color(r: int, g: int, b: int):
+def color(r: float, g: float, b: float):
     return bytes([int(b * 255), 
                   int(g * 255), 
-                  int(r * 255),])
+                  int(r * 255)])
 
 def encode_bytes(p: str):
     return bytes(p.encode('ascii'))
 
 class MyRenderer(object):
+
+    # constructor
     def __init__(self, height, width):
+        # resolution
         self.height = height
         self.width = width
+        #bg color
         self.clearColor = color(0, 0, 0)
+        # fill the image
+        self.glClear()
 
     def glInit(self):
         pass
@@ -44,7 +49,8 @@ class MyRenderer(object):
         pass
 
     def glClear(self):
-        self.pixels = []
+        self.pixels = [[ self.clearColor for y in range(self.height) ] 
+                       for x in range(self.width) ]
 
     def glClearColor(self, r, g, b):
         pass
@@ -59,23 +65,23 @@ class MyRenderer(object):
         with open(filename, 'wb') as file:
             # file Header
             # 2 bytes
-            file.write(encode_bytes('B'))
-            file.write(encode_bytes('M'))
+            file.write(bytes('B'.encode('ascii')))
+            file.write(bytes('M'.encode('ascii')))
             # 4 bytes, image size
-            file.write(dword(54 + (self.height * self.width * 3)))
+            file.write(dword(14 + 40 + (self.height * self.width * 3)))
             # 2 bytes, reserved
             file.write(dword(0))
             # 2 bytes
             # 4 bytes
-            file.write(dword(54))
+            file.write(dword(14 + 40))
 
             # info Header
-            file.write(dword(0))
+            file.write(dword(40))
             file.write(dword(self.width))
             file.write(dword(self.height))
             file.write(word(1))
             file.write(word(24))
-            file.write(dword(0))
+            file.write(dword(0)) 
             # image size
             file.write(dword(self.width * self.height * 3))
             # reserved

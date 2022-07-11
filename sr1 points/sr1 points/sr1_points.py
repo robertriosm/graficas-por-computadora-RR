@@ -1,6 +1,6 @@
 
 from myrenderer import MyRenderer
 
-render = MyRenderer(500, 500)
+render = MyRenderer(512, 512)
 
 render.glFinish('output.bmp')
