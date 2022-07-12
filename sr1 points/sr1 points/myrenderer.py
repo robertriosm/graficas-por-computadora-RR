@@ -24,9 +24,6 @@ def color(r: float, g: float, b: float):
                   int(g * 255), 
                   int(r * 255)])
 
-def encode_bytes(p: str):
-    return bytes(p.encode('ascii'))
-
 class MyRenderer(object):
 
     # constructor
@@ -34,32 +31,42 @@ class MyRenderer(object):
         # resolution
         self.height = height
         self.width = width
-        #bg color
+        # bg color  
         self.clearColor = color(0, 0, 0)
+        self.currcolor = color(1, 1, 1)
         # fill the image
-        self.glClear()
+        self.glClear() 
+
 
     def glInit(self):
         pass
 
+
     def glCreateWindow(self, width, height):
         pass
 
+
     def glViewPort(self, x, y, width, height):
         pass
+
 
     def glClear(self):
         self.pixels = [[ self.clearColor for y in range(self.height) ] 
                        for x in range(self.width) ]
 
-    def glClearColor(self, r, g, b):
-        pass
 
-    def glPoint(self, x, y):
-        pass
+    def glClearColor(self, r: float, g: float, b: float):
+        self.clearColor = color(r, g, b)
 
-    def glColor(self, r, g, b):
-        pass
+
+    def glPoint(self, x: int, y: int, pcolor = None):
+        if (0 <= x < self.width) and (0 <= y < self.height):
+            self.pixels[x][y] = pcolor or self.currcolor
+
+
+    def glColor(self, r: float, g: float, b: float):
+        self.currcolor = color(r, g, b)
+
 
     def glFinish(self, filename: str):
         with open(filename, 'wb') as file:
