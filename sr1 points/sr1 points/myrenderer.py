@@ -26,7 +26,7 @@ def color(r: float, g: float, b: float):
 
 class MyRenderer(object):
 
-    # constructor
+    # constructor, glInit
     def __init__(self, height, width):
         # resolution
         self.height = height
@@ -34,12 +34,10 @@ class MyRenderer(object):
         # bg color  
         self.clearColor = color(0, 0, 0)
         self.currcolor = color(1, 1, 1)
+        # viewport
+        self.glViewPort(0, 0, self.width, self.height)
         # fill the image
         self.glClear() 
-
-
-    def glInit(self):
-        pass
 
 
     def glCreateWindow(self, width, height):
@@ -47,6 +45,12 @@ class MyRenderer(object):
 
 
     def glViewPort(self, x, y, width, height):
+        self.vpx = x
+        self.vpy = y
+        self.vpwidth = width
+        self.vpheigth = height
+
+    def glVertex(self, x, y):
         pass
 
 
