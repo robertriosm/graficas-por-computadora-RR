@@ -3,9 +3,11 @@ UNIVERSIDAD DEL VALLE DE GUATEMALA
 INGENIERIA EN CIENCIAS DE LA COMPUTACION
 GRAFICAS POR COMPUTADORA
 ROBERTO RIOS, 20979
+LIBRERIA DE GRAFICAS DE BITMAPS
 """
 
 import struct
+from math import sin, log
 
 def char(c: str):
     # 1 byte
@@ -24,35 +26,66 @@ def color(r: float, g: float, b: float):
                   int(g * 255), 
                   int(r * 255)])
 
+def glCreateWindow(width: int, height: int):
+    return MyRenderer(width, height)
+
 class MyRenderer(object):
 
-    # constructor, glInit
-    def __init__(self, height, width):
+    # ------------------------------- constructor, glInit ------------------------------- 
+
+    def __init__(self, width: int, height: int):
         # resolution
-        self.height = height
         self.width = width
-        # bg color  
+        self.height = height
+        # bg color
         self.clearColor = color(0, 0, 0)
         self.currcolor = color(1, 1, 1)
         # viewport
         self.glViewPort(0, 0, self.width, self.height)
         # fill the image
-        self.glClear() 
+        self.glClear()
+
+    # ------------------------------- viewport controls ------------------------------- 
+
+    def glViewPort(self, x: int, y: int, width: int, height: int):
+        self.vpx = int(x)
+        self.vpy = int(y)
+        self.vpwidth = int(width)
+        self.vpheight = int(height)
 
 
-    def glCreateWindow(self, width, height):
-        pass
+    def glClearViewport(self, clr = None):
+        for x in range(self.vpx, self.vpx + self.vpwidth):
+            for y in range(self.vpy, self.vpy + self.vpheight):
+                self.glPoint(x, y, clr)
 
 
-    def glViewPort(self, x, y, width, height):
-        self.vpx = x
-        self.vpy = y
-        self.vpwidth = width
-        self.vpheigth = height
+    # ------------------------------- points drawing ------------------------------- 
 
-    def glVertex(self, x, y):
-        pass
+    # point with window coordinates
+    def glPoint(self, x: int, y: int, pcolor:bytes = None):
+        if (0 <= x < self.width) and (0 <= y < self.height):
+            self.pixels[x][y] = pcolor or self.currcolor
 
+
+    # viewport coordinates, normalized device coordinates
+    def glNDCPoint(self, ndcx: int, ndcy: int, clr = None):
+        x = (ndcx + 1) * (self.vpwidth / 2) + self.vpx
+        y = (ndcy + 1) * (self.vpheight / 2) + self.vpy
+        
+        x = int(x)
+        y = int(y)
+
+        self.glPoint(x, y, clr)
+
+    # draw experimental sin
+    def glVertex(self):
+        for x in range(self.vpx, self.vpx + self.vpwidth):
+            self.glPoint(x, int(sin(x)*2) + self.vpy*2, self.currcolor)
+        for x in range(self.vpx, self.vpx + self.vpwidth):
+            self.glPoint(x, int(log(x, 2)*2) + self.vpy*4, self.currcolor)
+
+    # ------------------------------- clear ------------------------------- 
 
     def glClear(self):
         self.pixels = [[ self.clearColor for y in range(self.height) ] 
@@ -61,16 +94,13 @@ class MyRenderer(object):
 
     def glClearColor(self, r: float, g: float, b: float):
         self.clearColor = color(r, g, b)
-
-
-    def glPoint(self, x: int, y: int, pcolor = None):
-        if (0 <= x < self.width) and (0 <= y < self.height):
-            self.pixels[x][y] = pcolor or self.currcolor
-
-
+    
+    # ------------------------------- color controls ------------------------------- 
+    
     def glColor(self, r: float, g: float, b: float):
         self.currcolor = color(r, g, b)
 
+    # ------------------------------- write file ----------------------------
 
     def glFinish(self, filename: str):
         with open(filename, 'wb') as file:
@@ -101,7 +131,7 @@ class MyRenderer(object):
             file.write(dword(0))
             file.write(dword(0))
 
-            # color table
+            # fill image
             for y in range(self.height):
                 for x in range(self.width):
                     file.write(self.pixels[x][y])
