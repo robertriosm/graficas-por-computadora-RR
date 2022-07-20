@@ -16,21 +16,26 @@ def char(c: str):
     # 1 byte
     return struct.pack('=c', c.encode('ascii'))
 
+
 def word(w: int):
     # 2 bytes
     return struct.pack('=h', w)
 
+
 def dword(d: int):
     # 4 byte
     return struct.pack('=l', d)
+
 
 def color(r: float, g: float, b: float):
     return bytes([int(b * 255), 
                   int(g * 255), 
                   int(r * 255)])
 
+
 def glCreateWindow(width: int, height: int):
     return MyRenderer(width, height)
+
 
 class MyRenderer(object):
 
@@ -168,7 +173,6 @@ class MyRenderer(object):
 
         dy = abs(y1 - y0)
         dx = abs(x1 - x0)
-
         offset = 0
         limit = 0.5
         m = dy / dx
@@ -181,12 +185,20 @@ class MyRenderer(object):
             else:
                 # en x
                 self.glPoint(x, y, clr)
-
             offset += m
-
             if offset >= limit:
                 if y0 < y1:
                     y += 1
                 else:
                     y -= 1
                 limit += 1
+
+
+
+def drawPolygon(polygon: list, render: MyRenderer, clr: bytes = None):
+    for i in range(len(polygon)):
+        render.glLine(polygon[i], polygon[ (i + 1) % len(polygon)], clr)
+
+        
+
+
