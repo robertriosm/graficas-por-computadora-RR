@@ -8,6 +8,9 @@ LIBRERIA DE GRAFICAS DE BITMAPS
 
 import struct
 from math import sin, log
+from collections import namedtuple
+
+V2 = namedtuple('Point2', ['x', 'y'])
 
 def char(c: str):
     # 1 byte
@@ -135,3 +138,55 @@ class MyRenderer(object):
             for y in range(self.height):
                 for x in range(self.width):
                     file.write(self.pixels[x][y])
+
+
+    # ------------------------------- draw line with Bresenham algorithm ----------------------------
+    def glLine(self, v0, v1, clr = None):
+        x0 = int(v0.x)
+        x1 = int(v1.x)
+        y0 = int(v0.y)
+        y1 = int(v1.y)
+
+        # Si p0 == p1, dibujar solo un punto
+        if x0 == x1 and y0 == y1:
+            self.glPoint(x0,y0,clr)
+            return
+
+        dy = abs(y1 - y0)
+        dx = abs(x1 - x0)
+
+        step = dy > dx
+        
+        if step:
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+
+        # Si Xo > Xf, intercambiar los puntos para dibujar de izquierda -> derecha       
+        if x0 > x1:
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+
+        dy = abs(y1 - y0)
+        dx = abs(x1 - x0)
+
+        offset = 0
+        limit = 0.5
+        m = dy / dx
+        y = y0
+
+        for x in range(x0, x1 + 1):
+            if step:
+                # en y 
+                self.glPoint(y, x, clr)
+            else:
+                # en x
+                self.glPoint(x, y, clr)
+
+            offset += m
+
+            if offset >= limit:
+                if y0 < y1:
+                    y += 1
+                else:
+                    y -= 1
+                limit += 1
