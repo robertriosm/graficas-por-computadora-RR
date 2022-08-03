@@ -3,14 +3,17 @@ UNIVERSIDAD DEL VALLE DE GUATEMALA
 INGENIERIA EN CIENCIAS DE LA COMPUTACION
 GRAFICAS POR COMPUTADORA
 ROBERTO RIOS, 20979
-LIBRERIA DE GRAFICAS DE BITMAPS
+LIBRERIA 3D DE GRAFICAS DE BITMAPS
 """
 
 import struct
 from math import sin, log
 from collections import namedtuple
+from object3d import Object3D
 
 V2 = namedtuple('Point2', ['x', 'y'])
+V3 = namedtuple('Point3', ['x', 'y', 'z'])
+V4 = namedtuple('Point4', ['x', 'y', 'z', 'w'])
 
 def char(c: str):
     # 1 byte
@@ -193,12 +196,92 @@ class MyRenderer(object):
                     y -= 1
                 limit += 1
 
+    # ------------------------------- fill polygons (triangles) ----------------------------
+
+    def glTriangle_std(self, A, B, C, clr = None):
+        
+        # change/share vertices
+        if A.y < B.y:
+            A, B = B, A
+
+        if A.y < C.y:
+            A, C = C, A
+
+        if B.y < C.y:
+            B, C = C, B
+
+        self.glLine(A,B, clr)
+        self.glLine(B,C, clr)
+        self.glLine(C,A, clr)
+
+        def flatBottom(vA,vB,vC):
+            try:
+                mBA = (vB.x - vA.x) / (vB.y - vA.y)
+                mCA = (vC.x - vA.x) / (vC.y - vA.y)
+            except:
+                pass
+            else:
+                x0 = vB.x
+                x1 = vC.x
+                for y in range(int(vB.y), int(vA.y)):
+                    self.glLine(V2(x0, y), V2(x1, y), clr)
+                    x0 += mBA
+                    x1 += mCA
+
+        def flatTop(vA,vB,vC):
+            try:
+                mCA = (vC.x - vA.x) / (vC.y - vA.y)
+                mCB = (vC.x - vB.x) / (vC.y - vB.y)
+            except:
+                pass
+            else:
+                x0 = vA.x
+                x1 = vB.x
+                for y in range(int(vA.y), int(vC.y), -1):
+                    self.glLine(V2(x0, y), V2(x1, y), clr)
+                    x0 -= mCA
+                    x1 -= mCB
+
+        # upper face
+        if B.y == C.y:
+            flatBottom(A,B,C)
+        # lower face
+        elif A.y == B.y:
+            flatTop(A,B,C)
+        # find intercept
+        else:
+            D = V2( A.x + ((B.y - A.y) / (C.y - A.y)) * (C.x - A.x), B.y)
+            flatBottom(A,B,D)
+            flatTop(B,D,C)
+    
+    # bc triangle
+    def glTriangle_bc():
+        pass
+
+    # ------------------------------- load .obj models ----------------------------
+    def load_object(self, filename: str, translate: tuple, scale: tuple):
+        model = Object3D(filename)
+    
+        for face in model.faces:
+            vcount = len(face)
+            for j in range(vcount):
+                f1 = face[j][0]
+                f2 = face[(j + 1) % vcount][0]
+
+                v1 = model.vertices[int(f1) - 1]
+                v2 = model.vertices[int(f2) - 1]
+        
+                x1 = round((v1[0] + translate[0]) * scale[0])
+                y1 = round((v1[1] + translate[1]) * scale[1])
+                x2 = round((v2[0] + translate[0]) * scale[0])
+                y2 = round((v2[1] + translate[1]) * scale[1])
+
+                self.glLine(V2(x1, y1), V2(x2, y2))
 
 
 def drawPolygon(polygon: list, render: MyRenderer, clr: bytes = None):
     for i in range(len(polygon)):
         render.glLine(polygon[i], polygon[ (i + 1) % len(polygon)], clr)
 
-        
-
-
+def fragmentShader(render: MyRenderer, **kwargs):
+    return 1,0,1

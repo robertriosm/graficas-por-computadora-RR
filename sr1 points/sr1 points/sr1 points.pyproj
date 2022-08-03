@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>c320a762-c01a-44c6-87ac-315ee4a7dad7</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>sr1_points.py</StartupFile>
+    <StartupFile>controler.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -22,7 +22,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="sr1_points.py" />
+    <Compile Include="object3d.py" />
+    <Compile Include="controler.py" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|VisualStudio|Python39" />
