@@ -1,8 +1,4 @@
 
-
-from time import sleep
-
-
 class Object3D(object):
 
     def __init__(self, filepath):
@@ -24,7 +20,6 @@ class Object3D(object):
                 #if line:
                     if prefix == 'v': # Vertices
                         self.vertices.append(list(map(float, value.split(' '))))
-                        sleep(0.1)
 
                     elif prefix == 'vt': # Vertices tex
                         self.texcoords.append(list(map(float, value.split(' '))))
@@ -38,6 +33,3 @@ class Object3D(object):
                 print(line)
                 print(self.lines.index(line))
                 print(e)
- 
-
-

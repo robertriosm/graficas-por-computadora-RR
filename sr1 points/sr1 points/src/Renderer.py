@@ -9,7 +9,11 @@ LIBRERIA 3D DE GRAFICAS DE BITMAPS
 import struct
 from math import sin, log
 from collections import namedtuple
-from object3d import Object3D
+from src.Object3D import Object3D
+from math import cos, sin, pi
+import random
+from Object3D import Object3D
+import numpy as np
 
 V2 = namedtuple('Point2', ['x', 'y'])
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
@@ -37,13 +41,28 @@ def color(r: float, g: float, b: float):
 
 
 def glCreateWindow(width: int, height: int):
-    return MyRenderer(width, height)
+    return Renderer(width, height)
 
+def baryCoords(A, B, C, P):
+    areaPBC = (B.y - C.y) * (P.x - C.x) + (C.x - B.x) * (P.y - C.y)
+    areaPAC = (C.y - A.y) * (P.x - C.x) + (A.x - C.x) * (P.y - C.y)
+    areaABC = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)
 
-class MyRenderer(object):
+    try:
+        # PBC / ABC
+        u = areaPBC / areaABC
+        # PAC / ABC
+        v = areaPAC / areaABC
+        # 1 - u - v
+        w = 1 - u - v
+    except:
+        return -1, -1, -1
+    else:
+        return u, v, w
+
+class Renderer(object):
 
     # ------------------------------- constructor, glInit ------------------------------- 
-
     def __init__(self, width: int, height: int):
         # resolution
         self.width = width
@@ -57,7 +76,6 @@ class MyRenderer(object):
         self.glClear()
 
     # ------------------------------- viewport controls ------------------------------- 
-
     def glViewPort(self, x: int, y: int, width: int, height: int):
         self.vpx = int(x)
         self.vpy = int(y)
@@ -72,7 +90,6 @@ class MyRenderer(object):
 
 
     # ------------------------------- points drawing ------------------------------- 
-
     # point with window coordinates
     def glPoint(self, x: int, y: int, pcolor:bytes = None):
         if (0 <= x < self.width) and (0 <= y < self.height):
@@ -88,16 +105,51 @@ class MyRenderer(object):
         y = int(y)
 
         self.glPoint(x, y, clr)
+    
 
-    # draw experimental sin
-    def glVertex(self):
-        for x in range(self.vpx, self.vpx + self.vpwidth):
-            self.glPoint(x, int(sin(x)*2) + self.vpy*2, self.currcolor)
-        for x in range(self.vpx, self.vpx + self.vpwidth):
-            self.glPoint(x, int(log(x, 2)*2) + self.vpy*4, self.currcolor)
+    # rotation matrix
+    def glCreateRotationMatrix(self, pitch = 0, yaw = 0, roll = 0):
+        
+        pitch *= pi/180
+        yaw   *= pi/180
+        roll  *= pi/180
+
+        pitchMat = np.matrix([[1, 0, 0, 0],
+                              [0, cos(pitch),-sin(pitch), 0],
+                              [0, sin(pitch), cos(pitch), 0],
+                              [0, 0, 0, 1]])
+
+        yawMat = np.matrix([[cos(yaw), 0, sin(yaw), 0],
+                            [0, 1, 0, 0],
+                            [-sin(yaw), 0, cos(yaw), 0],
+                            [0, 0, 0, 1]])
+
+        rollMat = np.matrix([[cos(roll),-sin(roll), 0, 0],
+                             [sin(roll), cos(roll), 0, 0],
+                             [0, 0, 1, 0],
+                             [0, 0, 0, 1]])
+
+        return pitchMat * yawMat * rollMat
+    
+
+    # object matrix
+    def glCreateObjectMatrix(self, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
+
+        translation = np.matrix([[1, 0, 0, translate.x],
+                                 [0, 1, 0, translate.y],
+                                 [0, 0, 1, translate.z],
+                                 [0, 0, 0, 1]])
+
+        rotation = self.glCreateRotationMatrix(rotate.x, rotate.y, rotate.z)
+
+        scaleMat = np.matrix([[scale.x, 0, 0, 0],
+                              [0, scale.y, 0, 0],
+                              [0, 0, scale.z, 0],
+                              [0, 0, 0, 1]])
+
+        return translation * rotation * scaleMat
 
     # ------------------------------- clear ------------------------------- 
-
     def glClear(self):
         self.pixels = [[ self.clearColor for y in range(self.height) ] 
                        for x in range(self.width) ]
@@ -107,12 +159,10 @@ class MyRenderer(object):
         self.clearColor = color(r, g, b)
     
     # ------------------------------- color controls ------------------------------- 
-    
     def glColor(self, r: float, g: float, b: float):
         self.currcolor = color(r, g, b)
 
     # ------------------------------- write file ----------------------------
-
     def glFinish(self, filename: str):
         with open(filename, 'wb') as file:
             # file Header
@@ -195,9 +245,22 @@ class MyRenderer(object):
                 else:
                     y -= 1
                 limit += 1
+            
+        
+    # transform vertex x matrix
+    def glTransform(self, vertex, matrix):
+
+        v = V4(vertex[0], vertex[1], vertex[2], 1)
+        vt = matrix @ v
+        vt = vt.tolist()[0]
+        vf = V3(vt[0] / vt[3],
+                vt[1] / vt[3],
+                vt[2] / vt[3])
+
+        return vf
+
 
     # ------------------------------- fill polygons (triangles) ----------------------------
-
     def glTriangle_std(self, A, B, C, clr = None):
         
         # change/share vertices
@@ -255,8 +318,81 @@ class MyRenderer(object):
             flatTop(B,D,C)
     
     # bc triangle
-    def glTriangle_bc():
-        pass
+    def glTriangle_bc(self, A, B, C, texCoords = (), normals = (), clr = None):
+        # bounding box
+        minX = round(min(A.x, B.x, C.x))
+        minY = round(min(A.y, B.y, C.y))
+        maxX = round(max(A.x, B.x, C.x))
+        maxY = round(max(A.y, B.y, C.y))
+
+        triangleNormal = np.cross( np.subtract(B, A), np.subtract(C,A))
+        # normalizar
+        triangleNormal = triangleNormal / np.linalg.norm(triangleNormal)
+
+
+        for x in range(minX, maxX + 1):
+            for y in range(minY, maxY + 1):
+                u, v, w = baryCoords(A, B, C, V2(x, y))
+
+                if 0<=u and 0<=v and 0<=w:
+
+                    z = A.z * u + B.z * v + C.z * w
+
+                    if 0<=x<self.width and 0<=y<self.height:
+                        if z < self.zbuffer[x][y]:
+                            self.zbuffer[x][y] = z
+
+                            if self.active_shader:
+                                r, g, b = self.active_shader(self,
+                                                             baryCoords=(u,v,w),
+                                                             vColor = clr or self.currColor,
+                                                             texCoords = texCoords,
+                                                             normals = normals,
+                                                             triangleNormal = triangleNormal)
+
+
+
+                                self.glPoint(x, y, color(r,g,b))
+                            else:
+                                self.glPoint(x,y, clr)
+                                
+    
+    # load a model from .obj file
+    def glLoadModel(self, filename, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
+        model = Obj(filename)
+        modelMatrix = self.glCreateObjectMatrix(translate, rotate, scale)
+
+        for face in model.faces:
+            vertCount = len(face)
+
+            v0 = model.vertices[ face[0][0] - 1]
+            v1 = model.vertices[ face[1][0] - 1]
+            v2 = model.vertices[ face[2][0] - 1]
+
+            v0 = self.glTransform(v0, modelMatrix)
+            v1 = self.glTransform(v1, modelMatrix)
+            v2 = self.glTransform(v2, modelMatrix)
+
+            vt0 = model.texcoords[face[0][1] - 1]
+            vt1 = model.texcoords[face[1][1] - 1]
+            vt2 = model.texcoords[face[2][1] - 1]
+
+            vn0 = model.normals[face[0][2] - 1]
+            vn1 = model.normals[face[1][2] - 1]
+            vn2 = model.normals[face[2][2] - 1]
+
+            self.glTriangle_bc(v0, v1, v2, texCoords = (vt0, vt1, vt2), normals = (vn0, vn1, vn2))
+
+            if vertCount == 4:
+                v3 = model.vertices[ face[3][0] - 1]
+                v3 = self.glTransform(v3, modelMatrix)
+                vt3 = model.texcoords[face[3][1] - 1]
+                vn3 = model.normals[face[3][2] - 1]
+
+
+                self.glTriangle_bc(v0, v2, v3, texCoords = (vt0, vt2, vt3), normals = (vn0, vn2, vn3))
+
+
 
     # ------------------------------- load .obj models ----------------------------
     def load_object(self, filename: str, translate: tuple, scale: tuple):
@@ -279,9 +415,9 @@ class MyRenderer(object):
                 self.glLine(V2(x1, y1), V2(x2, y2))
 
 
-def drawPolygon(polygon: list, render: MyRenderer, clr: bytes = None):
+def drawPolygon(polygon: list, render: Renderer, clr: bytes = None):
     for i in range(len(polygon)):
         render.glLine(polygon[i], polygon[ (i + 1) % len(polygon)], clr)
 
-def fragmentShader(render: MyRenderer, **kwargs):
+def fragmentShader(render: Renderer, **kwargs):
     return 1,0,1
