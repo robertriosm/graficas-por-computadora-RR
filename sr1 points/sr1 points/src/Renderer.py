@@ -9,10 +9,10 @@ LIBRERIA 3D DE GRAFICAS DE BITMAPS
 import struct
 from math import sin, log
 from collections import namedtuple
-from src.Object3D import Object3D
+from object3D import Object3D
 from math import cos, sin, pi
 import random
-from Object3D import Object3D
+from object3D import Object3D
 import numpy as np
 
 V2 = namedtuple('Point2', ['x', 'y'])
@@ -60,8 +60,9 @@ def baryCoords(A, B, C, P):
     else:
         return u, v, w
 
-class Renderer(object):
 
+# renderer object class
+class Renderer(object):
     # ------------------------------- constructor, glInit ------------------------------- 
     def __init__(self, width: int, height: int):
         # resolution
@@ -70,6 +71,12 @@ class Renderer(object):
         # bg color
         self.clearColor = color(0, 0, 0)
         self.currcolor = color(1, 1, 1)
+
+        self.active_shader = None
+        self.active_texture = None
+
+        self.dirLight = V3(0,0,1)
+
         # viewport
         self.glViewPort(0, 0, self.width, self.height)
         # fill the image
@@ -153,6 +160,9 @@ class Renderer(object):
     def glClear(self):
         self.pixels = [[ self.clearColor for y in range(self.height) ] 
                        for x in range(self.width) ]
+        
+        self.zbuffer = [[ float('inf') for y in range(self.height)]
+                          for x in range(self.width)]
 
 
     def glClearColor(self, r: float, g: float, b: float):
@@ -320,7 +330,7 @@ class Renderer(object):
     # bc triangle
     def glTriangle_bc(self, A, B, C, texCoords = (), normals = (), clr = None):
         # bounding box
-        minX = round(min(A.x, B.x, C.x))
+        minX = round(min(A.x, B.x, C.x)) 
         minY = round(min(A.y, B.y, C.y))
         maxX = round(max(A.x, B.x, C.x))
         maxY = round(max(A.y, B.y, C.y))
@@ -329,13 +339,11 @@ class Renderer(object):
         # normalizar
         triangleNormal = triangleNormal / np.linalg.norm(triangleNormal)
 
-
         for x in range(minX, maxX + 1):
             for y in range(minY, maxY + 1):
                 u, v, w = baryCoords(A, B, C, V2(x, y))
 
                 if 0<=u and 0<=v and 0<=w:
-
                     z = A.z * u + B.z * v + C.z * w
 
                     if 0<=x<self.width and 0<=y<self.height:
@@ -345,12 +353,10 @@ class Renderer(object):
                             if self.active_shader:
                                 r, g, b = self.active_shader(self,
                                                              baryCoords=(u,v,w),
-                                                             vColor = clr or self.currColor,
+                                                             vColor = clr or self.currcolor,
                                                              texCoords = texCoords,
                                                              normals = normals,
                                                              triangleNormal = triangleNormal)
-
-
 
                                 self.glPoint(x, y, color(r,g,b))
                             else:
@@ -359,7 +365,7 @@ class Renderer(object):
     
     # load a model from .obj file
     def glLoadModel(self, filename, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
-        model = Obj(filename)
+        model = Object3D(filename)
         modelMatrix = self.glCreateObjectMatrix(translate, rotate, scale)
 
         for face in model.faces:
@@ -388,7 +394,6 @@ class Renderer(object):
                 v3 = self.glTransform(v3, modelMatrix)
                 vt3 = model.texcoords[face[3][1] - 1]
                 vn3 = model.normals[face[3][2] - 1]
-
 
                 self.glTriangle_bc(v0, v2, v3, texCoords = (vt0, vt2, vt3), normals = (vn0, vn2, vn3))
 
