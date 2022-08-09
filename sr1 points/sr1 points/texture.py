@@ -2,18 +2,15 @@
 import struct
 
 class Texture(object):
-    def __init__(self, filename):
 
+    def __init__(self, filename):
         with open(filename, "rb") as image:
             image.seek(10)
             headerSize = struct.unpack('=l', image.read(4))[0]
-
             image.seek(18)
             self.width = struct.unpack('=l', image.read(4))[0]
             self.height = struct.unpack('=l', image.read(4))[0]
-
             image.seek(headerSize)
-
             self.pixels = []
 
             for y in range(self.height):
