@@ -3,7 +3,7 @@ MATH LIBRARY
 """
 
 from math import sqrt
-import numpy
+from numpy import matrix, subtract, linalg
 
 def dot_product(a: list, b: list):
     res = 0
@@ -36,7 +36,10 @@ def normalize(v: list):
     return res
 
 def substract(a, b):
-    return numpy.subtract(a,b)
+    return subtract(a,b)
 
 def weird_matrix(a: list):
-    return numpy.matrix(a)
+    return matrix(a)
+
+def inverse_matrix(a):
+    return linalg.inv(a)
