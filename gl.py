@@ -96,7 +96,7 @@ class Renderer(object):
                             [right[2],up[2],forward[2],camPosition[2]],
                             [0,0,0,1]]
 
-        self.viewMatrix = inverse_matrix(self.camMatrix)
+        self.viewMatrix = weird_matrix(inverse_matrix(self.camMatrix))
 
     def glProjectionMatrix(self, n = 0.1, f = 1000, fov = 60):
         aspectRatio = self.vpWidth / self.vpHeight
@@ -152,22 +152,22 @@ class Renderer(object):
         yaw   *= pi/180
         roll  *= pi/180
 
-        pitchMat = [[1, 0, 0, 0],
+        pitchMat = weird_matrix([[1, 0, 0, 0],
                     [0, cos(pitch),-sin(pitch), 0],
                     [0, sin(pitch), cos(pitch), 0],
-                    [0, 0, 0, 1]]
+                    [0, 0, 0, 1]])
 
-        yawMat =   [[cos(yaw), 0, sin(yaw), 0],
+        yawMat =   weird_matrix([[cos(yaw), 0, sin(yaw), 0],
                     [0, 1, 0, 0],
                     [-sin(yaw), 0, cos(yaw), 0],
-                    [0, 0, 0, 1]]
+                    [0, 0, 0, 1]])
 
-        rollMat =  [[cos(roll),-sin(roll), 0, 0],
+        rollMat =  weird_matrix([[cos(roll),-sin(roll), 0, 0],
                     [sin(roll), cos(roll), 0, 0],
                     [0, 0, 1, 0],
-                    [0, 0, 0, 1]]
+                    [0, 0, 0, 1]])
 
-        return weird_matrix(matrix_product(matrix_product(pitchMat, yawMat), rollMat))
+        return pitchMat * yawMat * rollMat
 
     def glCreateObjectMatrix(self, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
 
@@ -182,7 +182,6 @@ class Renderer(object):
                     [0, scale.y, 0, 0],
                     [0, 0, scale.z, 0],
                     [0, 0, 0, 1]])
-
         return translation * rotation * scaleMat
 
     def glTransform(self, vertex, matrix):
@@ -192,7 +191,6 @@ class Renderer(object):
         vf = V3(vt[0] / vt[3],
                 vt[1] / vt[3],
                 vt[2] / vt[3])
-
         return vf
 
     def glDirTransform(self, dirVector, rotMatrix):
@@ -202,7 +200,6 @@ class Renderer(object):
         vf = V3(vt[0],
                 vt[1],
                 vt[2])
-
         return vf
 
     def glCamTransform(self, vertex):
@@ -212,7 +209,6 @@ class Renderer(object):
         vf = V3(vt[0] / vt[3],
                 vt[1] / vt[3],
                 vt[2] / vt[3])
-
         return vf
 
     def glLoadModel(self, filename, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
@@ -314,7 +310,6 @@ class Renderer(object):
 
 
     def glTriangle_std(self, A, B, C, clr = None):
-        
         if A.y < B.y:
             A, B = B, A
         if A.y < C.y:
@@ -374,9 +369,9 @@ class Renderer(object):
         maxX = round(max(A.x, B.x, C.x))
         maxY = round(max(A.y, B.y, C.y))
 
-        triangleNormal = cross_product( substract(B, A), substract(C,A))
+        triangleNormal = weird_matrix(cross_product(substract(B, A), substract(C,A)))
         # normalized
-        triangleNormal = normalize(triangleNormal)
+        triangleNormal = weird_matrix(normalize(triangleNormal))
 
         for x in range(minX, maxX + 1):
             for y in range(minY, maxY + 1):

@@ -10,8 +10,8 @@ from gl import Renderer, V3
 from texture import Texture
 from shaders import flat
 
-width = 540
-height = 540
+width = 2000
+height = 1000
 
 rend = Renderer(width, height)
  
@@ -20,8 +20,33 @@ rend.active_texture = Texture("models/marmol.bmp")
 
 # golem
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3(width/2, height/2, 0),
-                 rotate = V3(0, 0, 0), 
+                 translate = V3(100, height/2 + 100, 0),
+                 rotate = V3(0, 0, 0),
+                 scale = V3(20,20,20))
+
+rend.glLoadModel("models/Stone.obj",
+                 translate = V3(width/3 + 100, height/2 + 100, 0),
+                 rotate = V3(0, 0, 0),
+                 scale = V3(20,20,20))
+
+rend.glLoadModel("models/Stone.obj",
+                 translate = V3((2*width)/3 + 100, height/2 + 100, 0),
+                 rotate = V3(0, 0, 0),
+                 scale = V3(20,20,20))
+
+rend.glLoadModel("models/Stone.obj",
+                 translate = V3(100, 100, 0),
+                 rotate = V3(0, 0, 0),
+                 scale = V3(20,20,20))
+
+rend.glLoadModel("models/Stone.obj",
+                 translate = V3(width/3 + 100, 100, 0),
+                 rotate = V3(0, 0, 0),
+                 scale = V3(20,20,20))
+
+rend.glLoadModel("models/Stone.obj",
+                 translate = V3((2*width)/3 + 100, 100, 0),
+                 rotate = V3(0, 0, 0),
                  scale = V3(20,20,20))
 
 rend.glFinish("golemye.bmp")
