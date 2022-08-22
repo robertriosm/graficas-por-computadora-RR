@@ -1,52 +1,43 @@
-"""
-UNIVERSIDAD DEL VALLE DE GUATEMALA
-INGENIERIA EN CIENCIAS DE LA COMPUTACION
-GRAFICAS POR COMPUTADORA
-ROBERTO RIOS, 20979
-PROGRAMA PRINCIPAL PARA CONTROLAR LA LIBRERIA DE GRAFICAS
-"""
 
 from gl import Renderer, V3
 from texture import Texture
-from shaders import flat
+from shaders import gourad, lava, golden, fallout_VATS, angry, silver # greyscale, invertedcolor, randomstatic, gourad, pinkjelly, heatmap
 
-width = 2000
-height = 1000
+width = 600
+height = 450
 
 rend = Renderer(width, height)
- 
-rend.active_shader = flat
+rend.glLookAt(V3(3.5, 1, 0), V3(5, 0.5, 3)) 
 rend.active_texture = Texture("models/marmol.bmp")
 
-# golem
+rend.active_shader = gourad
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3(100, height/2 + 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(2, 0, 0),
+                scale = V3(0.1,0.1,0.1),)
 
+rend.active_shader = plastilina
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3(width/3 + 100, height/2 + 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(3, 0, 0),
+                scale = V3(0.1,0.1,0.1))
 
+rend.active_shader = golden
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3((2*width)/3 + 100, height/2 + 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(4, 0, 0),
+                scale = V3(0.1,0.1,0.1))
 
+rend.active_shader = fallout_VATS
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3(100, 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(3, 1.4, 0),
+                scale = V3(0.1,0.1,0.1),)
 
+rend.active_shader = angry
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3(width/3 + 100, 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(2, 1.4, 0),
+                scale = V3(0.1,0.1,0.1))
 
+rend.active_shader = silver
 rend.glLoadModel("models/Stone.obj",
-                 translate = V3((2*width)/3 + 100, 100, 0),
-                 rotate = V3(0, 0, 0),
-                 scale = V3(20,20,20))
+                translate = V3(4, 1.4, 0),
+                scale = V3(0.1,0.1,0.1))
 
-rend.glFinish("golemye.bmp")
+rend.glFinish("shaders.bmp")

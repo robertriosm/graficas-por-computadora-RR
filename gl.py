@@ -1,14 +1,12 @@
 
 import struct
 from collections import namedtuple
-from math import cos, sin, pi, tan
+from math import cos, sin, tan, pi
 from obj import Obj
-from rrmath import cross_product, matrix_product, normalize, substract, weird_matrix, inverse_matrix
+from rrmath import subtract, matrix_product, inverse_matrix, cross_product, multiply_vectors, normalize
 
 V2 = namedtuple('Point2', ['x', 'y'])
-
 V3 = namedtuple('Point3', ['x', 'y', 'z'])
-
 V4 = namedtuple('Point4', ['x', 'y', 'z', 'w'])
 
 def char(c):
@@ -32,7 +30,6 @@ def baryCoords(A, B, C, P):
     areaPBC = (B.y - C.y) * (P.x - C.x) + (C.x - B.x) * (P.y - C.y)
     areaPAC = (C.y - A.y) * (P.x - C.x) + (A.x - C.x) * (P.y - C.y)
     areaABC = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y)
-
     try:
         # PBC / ABC
         u = areaPBC / areaABC
@@ -45,24 +42,20 @@ def baryCoords(A, B, C, P):
     else:
         return u, v, w
 
-
 class Renderer(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-
         self.clearColor = color(0,0,0)
         self.currColor = color(1,1,1)
-
         self.active_shader = None
         self.active_texture = None
-
-        self.dirLight = V3(0,0,1)
-
+        self.active_texture2 = None
+        self.dirLight = V3(0,0,-1)
         self.glViewMatrix()
         self.glViewport(0,0,self.width, self.height)
-        
         self.glClear()
+
 
     def glViewport(self, posX, posY, width, height):
         self.vpX = posX
@@ -70,56 +63,57 @@ class Renderer(object):
         self.vpWidth = width
         self.vpHeight = height
 
-        self.viewportMatrix = weird_matrix([[width/2,0,0,posX+width/2],
-                                         [0,height/2,0,posY+height/2],
-                                         [0,0,0.5,0.5],
-                                         [0,0,0,1]])
+        self.viewportMatrix = ([[width/2,0,0,posX+width/2],
+                                [0,height/2,0,posY+height/2],
+                                [0,0,0.5,0.5],
+                                [0,0,0,1]])
 
         self.glProjectionMatrix()
+
 
     def glViewMatrix(self, translate = V3(0,0,0), rotate = V3(0,0,0)):
         self.camMatrix = self.glCreateObjectMatrix(translate, rotate)
         self.viewMatrix = inverse_matrix(self.camMatrix)
 
-    def glLookAt(self, eye, camPosition = V3(0,0,0)):
-        forward = substract(camPosition, eye)
-        forward = normalize(forward)
+
+    def glLookAt(self, eye, camPosition):
+        forward = subtract([camPosition.x, camPosition.y, camPosition.z], [eye.x, eye.y, eye.z])
+        forward[:] = [x / normalize(forward) for x in forward]
 
         right = cross_product(V3(0,1,0), forward)
-        right = normalize(right)
+        right[:] = [x / normalize(right) for x in right]
 
         up = cross_product(forward, right)
-        up = normalize(up)
+        up[:] = [x / normalize(up) for x in up]
 
-        self.camMatrix =   [[right[0],up[0],forward[0],camPosition[0]],
+        self.camMatrix = ([[right[0],up[0],forward[0],camPosition[0]],
                             [right[1],up[1],forward[1],camPosition[1]],
                             [right[2],up[2],forward[2],camPosition[2]],
-                            [0,0,0,1]]
+                            [0,0,0,1]])
+        self.viewMatrix = inverse_matrix(self.camMatrix)
 
-        self.viewMatrix = weird_matrix(inverse_matrix(self.camMatrix))
 
     def glProjectionMatrix(self, n = 0.1, f = 1000, fov = 60):
         aspectRatio = self.vpWidth / self.vpHeight
         t = tan( (fov * pi / 180) / 2) * n
         r = t * aspectRatio
-
-        self.projectionMatrix = weird_matrix(  [[n/r,0,0,0],
-                                                [0,n/t,0,0],
-                                                [0,0,-(f+n)/(f-n),-(2*f*n)/(f-n)],
-                                                [0,0,-1,0]])
-
+        self.projectionMatrix = ([[n/r,0,0,0],
+                                [0,n/t,0,0],
+                                [0,0,-(f+n)/(f-n),-(2*f*n)/(f-n)],
+                                [0,0,-1,0]])
 
 
     def glClearColor(self, r, g, b):
         self.clearColor = color(r,g,b)
 
+
     def glColor(self, r, g, b):
         self.currColor = color(r,g,b)
+
 
     def glClear(self):
         self.pixels = [[ self.clearColor for y in range(self.height)]
                          for x in range(self.width)]
-
         self.zbuffer = [[ float('inf') for y in range(self.height)]
                           for x in range(self.width)]
 
@@ -136,10 +130,8 @@ class Renderer(object):
     def glPoint_vp(self, ndcX, ndcY, clr = None): # NDC
         if ndcX < -1 or ndcX > 1 or ndcY < -1 or ndcY > 1:
             return
-
         x = (ndcX + 1) * (self.vpWidth / 2) + self.vpX
         y = (ndcY + 1) * (self.vpHeight / 2) + self.vpY
-
         x = int(x)
         y = int(y)
 
@@ -147,47 +139,50 @@ class Renderer(object):
 
 
     def glCreateRotationMatrix(self, pitch = 0, yaw = 0, roll = 0):
-        
         pitch *= pi/180
         yaw   *= pi/180
         roll  *= pi/180
 
-        pitchMat = weird_matrix([[1, 0, 0, 0],
+        pitchMat = ([[1, 0, 0, 0],
                     [0, cos(pitch),-sin(pitch), 0],
                     [0, sin(pitch), cos(pitch), 0],
                     [0, 0, 0, 1]])
 
-        yawMat =   weird_matrix([[cos(yaw), 0, sin(yaw), 0],
+        yawMat = ([[cos(yaw), 0, sin(yaw), 0],
                     [0, 1, 0, 0],
                     [-sin(yaw), 0, cos(yaw), 0],
                     [0, 0, 0, 1]])
 
-        rollMat =  weird_matrix([[cos(roll),-sin(roll), 0, 0],
+        rollMat = ([[cos(roll),-sin(roll), 0, 0],
                     [sin(roll), cos(roll), 0, 0],
                     [0, 0, 1, 0],
                     [0, 0, 0, 1]])
+        
+        res1 = matrix_product(pitchMat, yawMat)
+        resFinal = matrix_product(res1, rollMat)
+        return resFinal
 
-        return pitchMat * yawMat * rollMat
 
     def glCreateObjectMatrix(self, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
-
-        translation =  weird_matrix([[1, 0, 0, translate.x],
+        translation = ([[1, 0, 0, translate.x],
                         [0, 1, 0, translate.y],
                         [0, 0, 1, translate.z],
                         [0, 0, 0, 1]])
 
         rotation = self.glCreateRotationMatrix(rotate.x, rotate.y, rotate.z)
 
-        scaleMat = weird_matrix([[scale.x, 0, 0, 0],
+        scaleMat = ([[scale.x, 0, 0, 0],
                     [0, scale.y, 0, 0],
                     [0, 0, scale.z, 0],
                     [0, 0, 0, 1]])
-        return translation * rotation * scaleMat
+        
+        res1 = matrix_product(translation, rotation)
+        resFinal = matrix_product(res1, scaleMat)
+        return resFinal
 
     def glTransform(self, vertex, matrix):
         v = V4(vertex[0], vertex[1], vertex[2], 1)
-        vt = matrix @ v
-        vt = vt.tolist()[0]
+        vt = multiply_vectors(matrix, v)
         vf = V3(vt[0] / vt[3],
                 vt[1] / vt[3],
                 vt[2] / vt[3])
@@ -195,8 +190,7 @@ class Renderer(object):
 
     def glDirTransform(self, dirVector, rotMatrix):
         v = V4(dirVector[0], dirVector[1], dirVector[2], 0)
-        vt = rotMatrix @ v
-        vt = vt.tolist()[0]
+        vt = multiply_vectors(rotMatrix, v)
         vf = V3(vt[0],
                 vt[1],
                 vt[2])
@@ -204,12 +198,14 @@ class Renderer(object):
 
     def glCamTransform(self, vertex):
         v = V4(vertex[0], vertex[1], vertex[2], 1)
-        vt = self.viewportMatrix @ self.projectionMatrix @ self.viewMatrix @ v
-        vt = vt.tolist()[0]
+        vt = matrix_product(self.viewportMatrix, self.projectionMatrix)
+        vt = matrix_product(vt, self.viewMatrix)
+        vt = multiply_vectors(vt, v)
         vf = V3(vt[0] / vt[3],
                 vt[1] / vt[3],
                 vt[2] / vt[3])
         return vf
+
 
     def glLoadModel(self, filename, translate = V3(0,0,0), rotate = V3(0,0,0), scale = V3(1,1,1)):
         model = Obj(filename)
@@ -218,7 +214,6 @@ class Renderer(object):
 
         for face in model.faces:
             vertCount = len(face)
-
             v0 = model.vertices[ face[0][0] - 1]
             v1 = model.vertices[ face[1][0] - 1]
             v2 = model.vertices[ face[2][0] - 1]
@@ -259,6 +254,7 @@ class Renderer(object):
                                    verts = (v0, v2, v3),
                                    texCoords = (vt0, vt2, vt3),
                                    normals = (vn0, vn2, vn3))
+
 
     def glLine(self, v0, v1, clr = None):
         # Bresenham line algorithm
@@ -305,11 +301,11 @@ class Renderer(object):
                     y += 1
                 else:
                     y -= 1
-                
                 limit += 1
 
 
     def glTriangle_std(self, A, B, C, clr = None):
+        
         if A.y < B.y:
             A, B = B, A
         if A.y < C.y:
@@ -350,28 +346,28 @@ class Renderer(object):
                     x1 -= mCB
 
         if B.y == C.y:
-            # Plano abajo
             flatBottom(A,B,C)
         elif A.y == B.y:
-            # Plano arriba
             flatTop(A,B,C)
         else:
-            # buscar intercepto
             D = V2( A.x + ((B.y - A.y) / (C.y - A.y)) * (C.x - A.x), B.y)
             flatBottom(A,B,D)
             flatTop(B,D,C)
 
 
-    def glTriangle_bc(self, A, B, C, texCoords = (), normals = (), clr = None):
-        # bounding
+    def glTriangle_bc(self, A, B, C, verts = (), texCoords = (), normals = (), clr = None):
         minX = round(min(A.x, B.x, C.x))
         minY = round(min(A.y, B.y, C.y))
         maxX = round(max(A.x, B.x, C.x))
         maxY = round(max(A.y, B.y, C.y))
 
-        triangleNormal = weird_matrix(cross_product(substract(B, A), substract(C,A)))
-        # normalized
-        triangleNormal = weird_matrix(normalize(triangleNormal))
+        triangleNormal = cross_product(subtract([verts[1].x, 
+                                        verts[1].y, 
+                                        verts[1].z], 
+                                        [verts[0].x, 
+                                        verts[0].y,
+                                        verts[0].z]), 
+                                        subtract([verts[2].x, verts[2].y, verts[2].z], [verts[0].x, verts[0].y, verts[0].z]))
 
         for x in range(minX, maxX + 1):
             for y in range(minY, maxY + 1):
@@ -382,7 +378,7 @@ class Renderer(object):
                     z = A.z * u + B.z * v + C.z * w
 
                     if 0<=x<self.width and 0<=y<self.height:
-                        if z < self.zbuffer[x][y]:
+                        if z < self.zbuffer[x][y] and -1<=z<= 1:
                             self.zbuffer[x][y] = z
 
                             if self.active_shader:
@@ -392,10 +388,10 @@ class Renderer(object):
                                                              texCoords = texCoords,
                                                              normals = normals,
                                                              triangleNormal = triangleNormal)
-
                                 self.glPoint(x, y, color(r,g,b))
                             else:
                                 self.glPoint(x,y, clr)
+
 
     def glFinish(self, filename):
         with open(filename, "wb") as file:
@@ -405,7 +401,6 @@ class Renderer(object):
             file.write(dword(14 + 40 + (self.width * self.height * 3)))
             file.write(dword(0))
             file.write(dword(14 + 40))
-
             #InfoHeader
             file.write(dword(40))
             file.write(dword(self.width))
@@ -418,7 +413,6 @@ class Renderer(object):
             file.write(dword(0))
             file.write(dword(0))
             file.write(dword(0))
-
             #Color table
             for y in range(self.height):
                 for x in range(self.width):
