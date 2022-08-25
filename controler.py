@@ -1,7 +1,7 @@
 
 from gl import Renderer, V3
 from texture import Texture
-from shaders import gourad, lava, golden, fallout_VATS, angry, silver # greyscale, invertedcolor, randomstatic, gourad, pinkjelly, heatmap
+from shaders import gourad, lava, golden, fallout_VATS, angry, silver, plastilina
 
 width = 600
 height = 450
@@ -15,7 +15,7 @@ rend.glLoadModel("models/Stone.obj",
                 translate = V3(2, 0, 0),
                 scale = V3(0.1,0.1,0.1),)
 
-rend.active_shader = plastilina
+rend.active_shader = lava
 rend.glLoadModel("models/Stone.obj",
                 translate = V3(3, 0, 0),
                 scale = V3(0.1,0.1,0.1))
