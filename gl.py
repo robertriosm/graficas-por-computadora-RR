@@ -196,6 +196,9 @@ class Renderer(object):
                 vt[2])
         return vf
 
+    def getPixel(self, x, y):
+        return self.pixels[x][y]
+
     def glCamTransform(self, vertex):
         v = V4(vertex[0], vertex[1], vertex[2], 1)
         vt = matrix_product(self.viewportMatrix, self.projectionMatrix)
@@ -417,3 +420,13 @@ class Renderer(object):
             for y in range(self.height):
                 for x in range(self.width):
                     file.write(self.pixels[x][y])
+
+
+
+def draw_polygon(rend: Renderer, polygon: list):
+    for i in range(len(polygon)):
+        if i == len(polygon)-1:
+            rend.glLine(polygon[0], polygon[i])
+            break
+        rend.glLine(polygon[i], polygon[i+1])
+
