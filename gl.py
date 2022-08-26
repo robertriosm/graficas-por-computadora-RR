@@ -236,6 +236,7 @@ class Renderer(object):
             vn0 = model.normals[face[0][2] - 1]
             vn1 = model.normals[face[1][2] - 1]
             vn2 = model.normals[face[2][2] - 1]
+            
             vn0 = self.glDirTransform(vn0, rotationMatrix)
             vn1 = self.glDirTransform(vn1, rotationMatrix)
             vn2 = self.glDirTransform(vn2, rotationMatrix)
