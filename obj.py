@@ -10,7 +10,13 @@ class Obj(object):
         self.faces = []
 
         for line in self.lines:
+
             try:
+                #print('aaaaa:' + line + 'x')
+                # if line[-1] == ' ':
+                #     line = line[:-1]
+                # print('aaaaa: ' + line + ' x' + line[:-1] + 'x')
+                
                 prefix, value = line.split(' ', 1)
             except:
                 continue

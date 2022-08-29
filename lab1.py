@@ -44,7 +44,6 @@ subpol7 = [pol5[9],pol5[10],pol5[15],pol5[-2]]
 subpol8 = [pol5[11],pol5[12],pol5[13],pol5[14]]
 
 
-
 draw_polygon(subpol1)
 recursive_lines(448,177)
 
