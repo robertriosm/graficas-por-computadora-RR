@@ -304,7 +304,7 @@ def shark1(render, **kwargs):
     r /= 255
     ton = [0.2, 0.3, 0.1]
     if render.active_texture:
-        # P = Au + Bv + Cw
+        
         tU = tA[0] * u + tB[0] * v + tC[0] * w
         tV = tA[1] * u + tB[1] * v + tC[1] * w
 

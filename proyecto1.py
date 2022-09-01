@@ -23,12 +23,12 @@ rend.glLoadModel("models/base/roca_base.obj",
 rend.glLoadModel("models/base/roca_base.obj",
             translate=V3(3,-0.2,0),
             scale = V3(0.03,0.03,0.03),
-            rotate=V3(-1,0.03,-10))
+            rotate=V3(-1,0.03,-7))
 
 rend.glLoadModel("models/base/roca_base.obj",
             translate=V3(4,-0.5,0),
             scale = V3(0.03,0.03,0.03),
-            rotate = V3(-20,-0.03,0.03))
+            rotate = V3(-15,-0.03,0.03))
 
 
 #ROCAS AMBIENTE
