@@ -1,7 +1,7 @@
 
 from gl import Renderer, V3
 from texture import Texture
-from shaders import gourad, shark1, anime
+from shaders import gourad, sandy, shark1, anime
 
 width = 600
 height = 450
@@ -12,8 +12,8 @@ rend.glLookAt(V3(3, 1, 0), V3(3, 0.5, 3))
 
 # PISO
 
-rend.active_shader = gourad
-rend.active_texture = Texture("models/sand_texture.bmp")
+rend.active_texture = Texture("models/textures/sand_texture.bmp")
+rend.active_shader = sandy
 
 rend.glLoadModel("models/base/roca_base.obj",
             translate=V3(2,-0.4,0),
@@ -33,7 +33,8 @@ rend.glLoadModel("models/base/roca_base.obj",
 
 #ROCAS AMBIENTE
 
-rend.active_texture = Texture("models/rock_texture.bmp")
+rend.active_texture = Texture("models/textures/rock_texture.bmp")
+rend.active_shader = gourad
 
 rend.glLoadModel("models/rocks/ObeliskSet01_A.obj",
                 translate=V3(0.5,0,-1.2),
@@ -67,28 +68,28 @@ rend.glLoadModel("models/rocks/ObeliskSet01_H.obj",
                 translate=V3(5,0,-0.2),
                 scale = V3(0.1,0.1,0.1))
 
-rend.glLoadModel("models/large_rock.obj",
+rend.glLoadModel("models/rocks/large_rock.obj",
                 translate=V3(4.6,0,-4.2),
                 scale = V3(0.03,0.03,0.03))
 
 # SHARKS!!
 
-rend.active_texture = Texture("models/shark_texture.bmp")
+rend.active_texture = Texture("models/textures/shark_texture.bmp")
 
 rend.active_shader = shark1
-rend.glLoadModel("models/Shark.obj",
+rend.glLoadModel("models/objs/Shark.obj",
                 translate=V3(3,0.5,-1),
                 scale = V3(0.02,0.02,0.02),
                 rotate=V3(20,0,8))
 
 rend.active_shader = gourad
-rend.glLoadModel("models/Shark.obj",
+rend.glLoadModel("models/objs/Shark.obj",
                 translate=V3(3.6,0.65,-1.3),
                 scale = V3(0.025,0.025,0.025),
                 rotate=V3(10,0,-8))
 
 rend.active_shader = gourad
-rend.glLoadModel("models/Shark.obj",
+rend.glLoadModel("models/objs/Shark.obj",
                 translate=V3(2.4,0.4,-1.8),
                 scale = V3(0.02,0.02,0.02),
                 rotate=V3(-10,0,8))
