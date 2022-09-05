@@ -51,11 +51,14 @@ class Renderer(object):
         self.active_shader = None
         self.active_texture = None
         self.active_texture2 = None
-        self.dirLight = V3(0,0,-1)
+
+        self.dirLight = V3(0,-1,0)
+
         self.glViewMatrix()
         self.glViewport(0,0,self.width, self.height)
         self.glClear()
 
+        self.normal_map = None
         self.background = None
 
 
@@ -136,7 +139,7 @@ class Renderer(object):
 
                     if texColor:
                         self.glPoint(x,y, color(texColor[0], texColor[1], texColor[2]))
-                        
+
 
     def glPoint(self, x, y, clr = None): # Window Coordinates
         if (0 <= x < self.width) and (0 <= y < self.height):
@@ -410,7 +413,6 @@ class Renderer(object):
                                 self.glPoint(x, y, color(r,g,b))
                             else:
                                 self.glPoint(x,y, clr)
-
 
     def glFinish(self, filename):
         with open(filename, "wb") as file:
