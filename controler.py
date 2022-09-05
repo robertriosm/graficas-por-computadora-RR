@@ -7,7 +7,8 @@ width = 600
 height = 450
 
 rend = Renderer(width, height)
-rend.glLookAt(V3(3.5, 1, 0), V3(5, 0.5, 3)) 
+rend.glLookAt(V3(3.5, 1, 0), V3(5, 0.5, 3))
+
 rend.active_texture = Texture("models/marmol.bmp")
 
 rend.active_shader = gourad

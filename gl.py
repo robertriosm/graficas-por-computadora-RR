@@ -56,6 +56,8 @@ class Renderer(object):
         self.glViewport(0,0,self.width, self.height)
         self.glClear()
 
+        self.background = None
+
 
     def glViewport(self, posX, posY, width, height):
         self.vpX = posX
@@ -122,6 +124,19 @@ class Renderer(object):
             for y in range(self.vpY, self.vpY + self.vpHeight):
                 self.glPoint(x,y,clr)
 
+    def glClearBackground(self):
+        if self.background:
+            for x in range(self.vpX, self.vpX + self.vpWidth + 1):
+                for y in range(self.vpY, self.vpY + self.vpHeight + 1):
+
+                    tU = (x - self.vpX) / self.vpWidth
+                    tV = (y - self.vpY) / self.vpHeight
+
+                    texColor = self.background.getColor(tU, tV)
+
+                    if texColor:
+                        self.glPoint(x,y, color(texColor[0], texColor[1], texColor[2]))
+                        
 
     def glPoint(self, x, y, clr = None): # Window Coordinates
         if (0 <= x < self.width) and (0 <= y < self.height):

@@ -1,7 +1,7 @@
 
 from gl import Renderer, V3
 from texture import Texture
-from shaders import gourad, sandy, shark1, anime
+from shaders import gourad, sandy, shark1, shark2, shark3
 
 width = 600
 height = 450
@@ -9,6 +9,8 @@ height = 450
 rend = Renderer(width, height)
 rend.glLookAt(V3(3, 1, 0), V3(3, 0.5, 3)) 
 
+# rend.background = Texture("models/bgs/bg.bmp")
+# rend.glClearBackground()
 
 # PISO
 
@@ -82,13 +84,13 @@ rend.glLoadModel("models/objs/Shark.obj",
                 scale = V3(0.02,0.02,0.02),
                 rotate=V3(20,0,8))
 
-rend.active_shader = gourad
+rend.active_shader = shark2
 rend.glLoadModel("models/objs/Shark.obj",
                 translate=V3(3.6,0.65,-1.3),
                 scale = V3(0.025,0.025,0.025),
                 rotate=V3(10,0,-8))
 
-rend.active_shader = gourad
+rend.active_shader = shark3
 rend.glLoadModel("models/objs/Shark.obj",
                 translate=V3(2.4,0.4,-1.8),
                 scale = V3(0.02,0.02,0.02),
